@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drukknoppen met Kleurverandering</title>
+    <style>
+        .button-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Specifieke grid layout voor de knoppen */
+        .row-1 { grid-template-columns: repeat(7, 100px); }
+        .row-2 { grid-template-columns: repeat(7, 100px); }
+        .row-3 { grid-template-columns: repeat(4, 100px); }
+        .row-4 { grid-template-columns: repeat(5, 100px); }
+        .row-5 { grid-template-columns: repeat(2, 100px); }
+        .row-6 { grid-template-columns: repeat(5, 100px); }
+
+        .button {
+            width: 100px;
+            height: 50px;
+            background-color: lightgray;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Knoppen Layout -->
+    <div class="button-grid row-1">
+        <button class="button" id="btn-1-1">Knop 1-1</button>
+        <button class="button" id="btn-1-2">Knop 1-2</button>
+        <button class="button" id="btn-1-3">Knop 1-3</button>
+        <!-- Voeg hier meer knoppen toe zoals hierboven -->
+    </div>
+
+    <!-- JavaScript voor interactie met server -->
+    <script>
+        const buttons = document.querySelectorAll('.button');
+
+        // Functie om kleur naar de server te sturen
+        function updateColorOnServer(buttonId, color) {
+            fetch('/update-color', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ buttonId: buttonId, color: color }),
+            })
+            .then(response => response.json())
+            .then(data => console.log('Kleur bijgewerkt op de server:', data))
+            .catch(error => console.error('Fout bij het bijwerken:', error));
+        }
+
+        // Functie om knoppen van kleur te wisselen
+        function toggleColor(button) {
+            let currentColor = button.style.backgroundColor;
+            let newColor;
+
+            if (currentColor === 'green') {
+                newColor = 'red';
+            } else if (currentColor === 'red') {
+                newColor = 'orange';
+            } else {
+                newColor = 'green';
+            }
+
+            button.style.backgroundColor = newColor;
+
+            // Update de kleur op de server
+            updateColorOnServer(button.id, newColor);
+        }
+
+        // Haal de huidige kleuren op van de server
+        function fetchButtonColors() {
+            fetch('/get-colors')
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        const button = document.getElementById(item.buttonId);
+                        if (button) {
+                            button.style.backgroundColor = item.color;
+                        }
+                    });
+                });
+        }
+
+        // Voeg click events toe aan elke knop
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                toggleColor(button);
+            });
+        });
+
+        // Haal de kleuren op zodra de pagina geladen is
+        window.onload = fetchButtonColors;
+    </script>
+</body>
+</html>
